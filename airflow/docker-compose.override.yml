@@ -1,0 +1,9 @@
+x-aws-creds: &aws-creds
+  volumes:
+    - ${HOME}/.aws:/usr/local/airflow/.aws:ro
+
+services:
+  scheduler: *aws-creds
+  api-server: *aws-creds
+  dag-processor: *aws-creds
+  triggerer: *aws-creds
