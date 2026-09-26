@@ -1,6 +1,6 @@
-# NYC 311 Data Pipeline
+# City 311 Data Pipeline
 
-End-to-end data engineering pipeline on NYC 311 service request data.
+End-to-end data engineering pipeline on 311 service request data from New York City and Boston.
 
 **Stack:** Airflow · AWS S3 · Snowflake · dbt · Claude (AI data-quality layer)
 
