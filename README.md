@@ -5,8 +5,29 @@ End-to-end data engineering pipeline on 311 service request data from New York C
 **Stack:** Airflow · AWS S3 · Snowflake · dbt · Claude (AI data-quality layer)
 
 ## Architecture
-311 API → Airflow → S3 (landing) → Snowflake RAW → dbt (bronze / silver / gold) → dashboard
-AI layer: failed dbt tests → LLM root-cause summary → Slack
+
+```mermaid
+flowchart TD
+    subgraph Sources
+        NYC[NYC 311 API<br/>Socrata JSON]
+        BL[Boston legacy<br/>12-digit case IDs]
+        BN[Boston new system<br/>BCS- case IDs]
+    end
+    subgraph Airflow["Airflow orchestration"]
+        S3[(S3 landing<br/>partitioned by source, day)]
+        subgraph SF["Snowflake + dbt"]
+            RAW[RAW] -.-> BR[Bronze] -.-> SI[Silver<br/>unified schema] -.-> GO[Gold<br/>city marts]
+        end
+        S3 -->|COPY INTO| RAW
+    end
+    NYC --> S3
+    BL -.-> S3
+    BN -.-> S3
+    GO -.-> DASH[Dashboard]
+    GO -.-> AI[AI quality layer<br/>Claude → Slack]
+```
+
+Solid arrows are built; dotted arrows are planned.
 
 ## Progress
 - [x] Phase 1a: Snowflake warehouse, database, raw table
