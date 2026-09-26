@@ -12,7 +12,8 @@ AI layer: failed dbt tests → LLM root-cause summary → Slack
 - [x] Phase 1a: Snowflake warehouse, database, raw table
 - [x] Phase 1b: S3 storage integration + external stage (IAM role, least privilege)
 - [x] Phase 1c: First load: 1,000 records via COPY INTO
-- [ ] Phase 1d: Airflow DAG for scheduled ingestion
+- [x] Phase 1d: Airflow DAG: daily extract from 311 API to S3 (NYC-local day partitions, idempotent)
+- [ ] Phase 1e: Airflow load task (S3 → Snowflake COPY INTO)
 - [ ] Phase 2: dbt medallion layers
 - [ ] Phase 3: Testing
 - [ ] Phase 4: AI incident summaries
