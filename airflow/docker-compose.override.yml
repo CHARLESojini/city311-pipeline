@@ -1,9 +1,10 @@
-x-aws-creds: &aws-creds
+x-local-creds: &local-creds
   volumes:
     - ${HOME}/.aws:/usr/local/airflow/.aws:ro
+    - ${HOME}/.snowflake:/usr/local/airflow/.snowflake:ro
 
 services:
-  scheduler: *aws-creds
-  api-server: *aws-creds
-  dag-processor: *aws-creds
-  triggerer: *aws-creds
+  scheduler: *local-creds
+  api-server: *local-creds
+  dag-processor: *local-creds
+  triggerer: *local-creds
