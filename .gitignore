@@ -1,0 +1,9 @@
+.env
+*.env
+sample_*.json
+data/
+trust-policy.json
+s3-policy.json
+__pycache__/
+logs/
+.DS_Store
