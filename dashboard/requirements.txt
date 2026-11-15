@@ -1,0 +1,7 @@
+# Streamlit Community Cloud installs this file (it sits next to app.py)
+streamlit>=1.50
+altair>=5.4
+pandas>=2.2
+snowflake-connector-python[pandas]>=3.12
+cryptography>=42
+duckdb>=1.1

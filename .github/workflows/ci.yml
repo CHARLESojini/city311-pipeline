@@ -66,6 +66,12 @@ jobs:
         run: |
           dbt compile --target prod --no-populate-cache --target-path target_sf
           python ../scripts/ci/check_snowflake_sql.py target_sf
+      - name: Dashboard smoke test (headless, on the fixture warehouse)
+        run: |
+          pip install -r dashboard/requirements.txt
+          python scripts/ci/smoke_test_dashboard.py
+      - name: Tableau CSV export (from the fixture warehouse)
+        run: python scripts/export_gold_csv.py --source duckdb
 
   dags:
     name: Airflow DAG integrity

@@ -43,3 +43,9 @@ def test_ai_insights_runs_even_if_dbt_fails(dagbag):
     task = dagbag.get_dag("city311_transform").get_task("ai_insights")
     assert task.upstream_task_ids == {"dbt_build"}
     assert task.trigger_rule == "all_done"
+
+
+def test_csv_export_follows_successful_gold_build(dagbag):
+    task = dagbag.get_dag("city311_transform").get_task("export_gold_csv")
+    assert task.upstream_task_ids == {"publish_gold"}
+    assert task.trigger_rule == "all_success"
