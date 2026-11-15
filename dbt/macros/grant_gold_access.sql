@@ -1,6 +1,6 @@
 {#-
   on-run-end hook: after a prod run on Snowflake, let downstream roles read GOLD.
-  dbt (role TRANSFORMER) owns the GOLD schema, so it is the one that can grant.
+  dbt (role CITY311_TRANSFORMER) owns the GOLD schema, so it is the one that can grant.
   Roles come from var gold_reader_roles; no-op on dev, CI and DuckDB.
 -#}
 {% macro grant_gold_access() %}
