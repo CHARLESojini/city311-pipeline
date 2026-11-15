@@ -80,7 +80,9 @@ def build(rng: random.Random) -> dict[str, list[tuple[dict, str, datetime]]]:
 
     for i in range(DAYS):
         day = start + timedelta(days=i)
-        run_file = lambda src: f"{src}/run_date={day:%Y-%m-%d}/{src}_{day:%Y%m%d}.json"  # noqa: E731
+        def run_file(src: str, day: date = day) -> str:
+            return f"{src}/run_date={day:%Y-%m-%d}/{src}_{day:%Y%m%d}.json"
+
         load_ts = datetime.combine(day + timedelta(days=1), datetime.min.time()) + timedelta(hours=6)
 
         # ---------------- NYC
