@@ -219,10 +219,16 @@ with right:
                     "median_age_days"]], hide_index=True, width="stretch")
 
 # ---------------------------------------------------------------- downloads
+# The request-level extract (~800k rows) is too heavy to build on every page load
+# of a free-tier app; it ships with the daily Tableau export in S3 instead.
+HEAVY_EXPORTS = {"service_requests_recent"}
+
 st.subheader("Download the gold tables")
-st.caption("The same CSVs feed the Tableau Public version of this dashboard.")
+st.caption("The same CSVs feed the Tableau Public version of this dashboard. The request-level file "
+           "(one row per request, last 90 days) is published with the daily export rather than here.")
+light = {k: v for k, v in export_queries(G).items() if k not in HEAVY_EXPORTS}
 dl = st.columns(3)
-for i, (name, sql) in enumerate(export_queries(G).items()):
+for i, (name, sql) in enumerate(light.items()):
     df = data.query(sql)
     dl[i % 3].download_button(f"{name}.csv ({len(df):,} rows)", df.to_csv(index=False).encode(),
                               file_name=f"{name}.csv", mime="text/csv", width="stretch")
