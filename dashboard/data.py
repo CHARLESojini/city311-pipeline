@@ -54,6 +54,7 @@ def _snowflake_connection():
         account=cfg["account"],
         user=cfg["user"],
         private_key=key,
+        authenticator="SNOWFLAKE_JWT",  # required with key-pair auth on connector 5.x
         role=cfg.get("role", "REPORTER"),
         warehouse=cfg.get("warehouse", "NYC311_WH"),
         database=cfg.get("database", "NYC311"),
