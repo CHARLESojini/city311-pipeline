@@ -10,7 +10,12 @@ macro-paths: ["macros"]
 analysis-paths: ["analyses"]
 clean-targets: ["target", "dbt_packages"]
 
+on-run-end:
+  - "{{ grant_gold_access() }}"
+
 vars:
+  # Roles that may read GOLD after a prod run (AI layer reads it as PIPELINE_LOADER)
+  gold_reader_roles: ["PIPELINE_LOADER"]
   # Anomaly detection (mart_volume_anomalies)
   anomaly_baseline_days: 28      # trailing days used as the baseline (current day excluded)
   anomaly_z_threshold: 3.0       # |z| at or above this is flagged
