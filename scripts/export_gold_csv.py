@@ -45,6 +45,7 @@ def snowflake_query():
         account=os.environ["SNOWFLAKE_ACCOUNT"],
         user=os.environ["SNOWFLAKE_USER"],
         private_key=private_key,
+        authenticator="SNOWFLAKE_JWT",
         role=os.getenv("SNOWFLAKE_ROLE", "REPORTER"),
         warehouse=os.getenv("SNOWFLAKE_WAREHOUSE", "NYC311_WH"),
         database="NYC311",
