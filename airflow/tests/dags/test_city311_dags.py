@@ -37,3 +37,9 @@ def test_transform_is_triggered_by_raw_asset(dagbag):
 def test_dbt_build_does_not_retry(dagbag):
     # a failing data test fails again on retry; alert immediately instead
     assert dagbag.get_dag("city311_transform").get_task("dbt_build").retries == 0
+
+
+def test_ai_insights_runs_even_if_dbt_fails(dagbag):
+    task = dagbag.get_dag("city311_transform").get_task("ai_insights")
+    assert task.upstream_task_ids == {"dbt_build"}
+    assert task.trigger_rule == "all_done"
