@@ -66,8 +66,13 @@ models:
           - accepted_values:
               arguments:
                 values: ["city", "source_system", "category"]
+      - name: is_provisional
+        description: >
+          True for the newest anomaly_provisional_days days, which may be partially
+          published by the portals. Shown, never flagged.
+        data_tests: [not_null]
       - name: is_anomaly
         description: >
-          |z| >= anomaly_z_threshold AND |pct change| >= anomaly_min_pct_change AND
-          baseline mean >= anomaly_min_baseline AND at least half a baseline of history.
+          Not provisional AND |z| >= anomaly_z_threshold AND |pct change| >= anomaly_min_pct_change
+          AND baseline mean >= anomaly_min_baseline AND at least half a baseline of history.
         data_tests: [not_null]

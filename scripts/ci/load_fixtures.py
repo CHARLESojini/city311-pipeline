@@ -14,6 +14,7 @@ Analyze Boston CKAN) and plant the situations the models and tests must handle:
 * the Boston CRM migration: legacy volume fades out as the new system ramps up
 * one Boston day where both feeds go nearly silent (an outage to detect)
 * one NYC noise spike (a holiday-weekend style surge)
+* a partially published latest day in both cities (must be provisional, not flagged)
 * categories missing from the seed mapping, and junk coordinates
 """
 from __future__ import annotations
@@ -66,7 +67,9 @@ def weighted(rng: random.Random, items):
 
 def nyc_day_volume(day: date, rng: random.Random) -> int:
     base = 160 if day.weekday() < 5 else 120
-    return int(rng.gauss(base, 10))
+    if day == AS_OF:
+        base *= 0.05  # portal had published only a sliver of the latest day
+    return int(rng.gauss(base, 10 if day != AS_OF else 1))
 
 
 def build(rng: random.Random) -> dict[str, list[tuple[dict, str, datetime]]]:
@@ -126,6 +129,8 @@ def build(rng: random.Random) -> dict[str, list[tuple[dict, str, datetime]]]:
         total = int(rng.gauss(60 if day.weekday() < 5 else 40, 5))
         if day == outage_day:
             total = 3
+        elif day == AS_OF:
+            total = max(total // 5, 1)  # partial publication of the latest day
         n_new = int(total * progress)
         for _ in range(total - n_new):
             legacy_id += 1

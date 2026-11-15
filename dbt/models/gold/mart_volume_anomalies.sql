@@ -7,6 +7,10 @@
 --   category       e.g. NYC "Noise" spiking on a holiday weekend
 -- Days with no requests count as zero (a feed going silent is the anomaly
 -- that matters most), but only from the first day each series appears.
+-- The newest day(s) are provisional: both portals publish with a lag, so the
+-- latest day is usually incomplete and would read as a citywide "drop". Those
+-- rows are kept (is_provisional) but never flagged; the lookback re-extract
+-- completes them on the next run.
 {% set baseline_window = var('anomaly_baseline_days') %}
 {% set w -%}
     over (
@@ -71,6 +75,10 @@ scored as (
         (request_count - baseline_mean) / nullif(baseline_stddev, 0)      as z_score,
         (request_count - baseline_mean) / nullif(baseline_mean, 0)        as pct_change_vs_baseline
     from baselined
+),
+
+latest as (
+    select max(created_date) as max_date from fct
 )
 
 select
@@ -87,11 +95,15 @@ select
     z_score,
     pct_change_vs_baseline,
     case when request_count >= baseline_mean then 'spike' else 'drop' end as direction,
+    activity_date > {{ dbt.dateadd('day', -var('anomaly_provisional_days'), 'latest.max_date') }}
+                                                                          as is_provisional,
     coalesce(
-        baseline_days >= {{ (baseline_window / 2) | int }}
+        activity_date <= {{ dbt.dateadd('day', -var('anomaly_provisional_days'), 'latest.max_date') }}
+        and baseline_days >= {{ (baseline_window / 2) | int }}
         and baseline_mean >= {{ var('anomaly_min_baseline') }}
         and abs(z_score) >= {{ var('anomaly_z_threshold') }}
         and abs(pct_change_vs_baseline) >= {{ var('anomaly_min_pct_change') }},
         false
     )                                                                     as is_anomaly
 from scored
+cross join latest
