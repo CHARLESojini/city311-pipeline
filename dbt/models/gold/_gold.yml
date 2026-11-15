@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: fct_service_requests
+    description: One row per service request (latest version), all cities. Base grain for marts and drill-down.
+
+  - name: mart_daily_city_volume
+    description: Requests opened and closed per day x city x source system x standard category.
+
+  - name: mart_category_performance
+    description: >
+      Resolution speed per city and standard category over the trailing
+      performance window (var performance_window_days), as of the latest data day.
+
+  - name: mart_open_backlog
+    description: Open requests and their age per city and category, as of the latest data day.
+
+  - name: mart_city_kpis
+    description: One headline row per city for dashboard KPI tiles.
+
+  - name: mart_volume_anomalies
+    description: >
+      Daily volume per series (city total, source system, standard category)
+      with a trailing baseline, z-score and an is_anomaly flag. Detection is
+      deterministic; the AI layer only explains flagged rows.
+    columns:
+      - name: anomaly_key
+        description: series_type:city:series_value:date
+      - name: is_anomaly
+        description: >
+          |z| >= anomaly_z_threshold AND |pct change| >= anomaly_min_pct_change AND
+          baseline mean >= anomaly_min_baseline AND at least half a baseline of history.

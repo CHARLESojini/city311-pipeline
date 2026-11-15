@@ -1,0 +1,46 @@
+name: city311
+version: "1.0.0"
+config-version: 2
+profile: city311
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Anomaly detection (mart_volume_anomalies)
+  anomaly_baseline_days: 28      # trailing days used as the baseline (current day excluded)
+  anomaly_z_threshold: 3.0       # |z| at or above this is flagged
+  anomaly_min_pct_change: 0.30   # ...and the day must differ from baseline by >= 30%
+  anomaly_min_baseline: 10       # ignore series averaging fewer requests per day
+  performance_window_days: 28    # trailing window for mart_category_performance
+
+models:
+  city311:
+    bronze:
+      +schema: bronze
+      +materialized: view
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
+
+seeds:
+  city311:
+    +schema: reference
+    category_map:
+      +column_types:
+        city: varchar
+        source_system: varchar
+        category_raw: varchar
+        standard_category: varchar
+    channel_map:
+      +column_types:
+        source_system: varchar
+        channel_raw: varchar
+        channel: varchar

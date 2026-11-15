@@ -21,8 +21,9 @@ import pendulum
 import requests
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
-from airflow.sdk import Asset, dag, get_current_context, task
+from airflow.sdk import dag, get_current_context, task
 
+from include.city311.assets import RAW_ASSET
 from include.city311.sources import (
     DEFAULT_LOOKBACK_DAYS,
     SOURCES,
@@ -34,8 +35,6 @@ from include.city311.sources import (
 BUCKET = os.getenv("CITY311_BUCKET", "nyc311-raw-chima")
 STAGE = "NYC311.RAW.NYC311_S3_STAGE"
 LOOKBACK_DAYS = int(os.getenv("CITY311_LOOKBACK_DAYS", DEFAULT_LOOKBACK_DAYS))
-
-RAW_ASSET = Asset(name="city311_raw")
 
 
 @dag(

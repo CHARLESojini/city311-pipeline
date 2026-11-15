@@ -1,0 +1,39 @@
+# Committed on purpose: holds no secrets, only env_var() lookups.
+# Point dbt at it with:  export DBT_PROFILES_DIR=$(pwd)   (from the dbt/ folder)
+#
+# Targets
+#   dev   your own schemas (DBT_<NAME>_BRONZE, ...), for local development
+#   prod  BRONZE / SILVER / GOLD, what the dashboard and AI layer read
+#   ci    local DuckDB file loaded with fixture data; no Snowflake needed
+city311:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'unset') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'unset') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '~/.snowflake/rsa_key.p8') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER') }}"
+      warehouse: NYC311_WH
+      database: NYC311
+      schema: "{{ env_var('DBT_DEV_SCHEMA', 'DBT_DEV') }}"
+      threads: 4
+      query_tag: city311_dbt_dev
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'unset') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'unset') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '~/.snowflake/rsa_key.p8') }}"
+      role: TRANSFORMER
+      warehouse: NYC311_WH
+      database: NYC311
+      schema: PUBLIC
+      threads: 4
+      query_tag: city311_dbt_prod
+
+    ci:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'target/city311_ci.duckdb') }}"
+      schema: main
+      threads: 4

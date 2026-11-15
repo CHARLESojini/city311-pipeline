@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Landing tables written by the city311_ingest Airflow DAG via COPY INTO.
+      One table per source, each row is one record exactly as the API returned
+      it (raw_data VARIANT), plus the S3 file it came from and the load time.
+    database: "{{ var('raw_database', target.database) }}"
+    schema: RAW
+    loaded_at_field: loaded_at
+    config:
+      freshness:
+        warn_after: {count: 36, period: hour}
+        error_after: {count: 72, period: hour}
+    tables:
+      - name: nyc_service_requests
+        identifier: NYC_SERVICE_REQUESTS
+        description: NYC Open Data 311 (Socrata dataset erm2-nwe9).
+      - name: boston_legacy_service_requests
+        identifier: BOSTON_LEGACY_SERVICE_REQUESTS
+        description: >
+          Analyze Boston, legacy CRM (12-digit case_enquiry_id). Being retired
+          as case types move to the new CRM, so its volume is expected to fall.
+        config:
+          freshness:
+            # The legacy feed is winding down; going quiet is expected, not an outage.
+            warn_after: {count: 7, period: day}
+            error_after: null
+      - name: boston_new_service_requests
+        identifier: BOSTON_NEW_SERVICE_REQUESTS
+        description: Analyze Boston, new CRM since Oct 2025 (case_id starts with BCS-).
