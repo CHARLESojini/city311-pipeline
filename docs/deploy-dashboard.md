@@ -82,8 +82,15 @@ Use any of these:
 
 ### Build the workbook
 
-1. Open Tableau Public (desktop app) > **Connect > Text file** > `daily_city_volume.csv`.
-   Add the other CSVs as separate data sources; they do not need to be joined.
+Published version: [City 311 Pipeline: NYC vs Boston](https://public.tableau.com/app/profile/chima.ojini/viz/City311PipelineNYCvsBoston/City311NYCvsBostondatathroughNov132026).
+It was built in the browser (Tableau Public web authoring, no desktop app).
+
+1. On public.tableau.com, **Create > Web Authoring > Files > Upload from computer**.
+   Web authoring takes one file per upload, so the published version uses one
+   Excel workbook with one sheet per CSV. Drag the tables onto the canvas and
+   relate them on `city`; each chart only queries the table its fields come
+   from, so the relationships never multiply rows.
+   (Desktop app: **Connect > Text file**, one data source per CSV.)
 2. Suggested sheets, mirroring the Streamlit app:
    - **Requests per day:** `activity_date` (continuous day) on Columns,
      SUM(`opened_count`) on Rows, `city` on Rows as well (one panel per city,
@@ -94,4 +101,5 @@ Use any of these:
    - **Map:** `service_requests_recent.csv`, latitude/longitude, `standard_category` on Color.
 3. Colors, to match the app: NYC `#2a78d6`, Boston `#eb6834`,
    legacy CRM `#1baf7a`, new CRM `#eda100`.
-4. **File > Save to Tableau Public.** To refresh, replace the CSVs and re-save.
+4. **Publish As** (web) or **File > Save to Tableau Public** (desktop). Tableau Public
+   doesn't refresh from our data, so to update it, upload new CSVs and republish.

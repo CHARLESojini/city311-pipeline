@@ -8,6 +8,8 @@ and a **live dashboard**.
 
 **Live dashboard:** [city311-pipeline.streamlit.app](https://city311-pipeline.streamlit.app), reading Snowflake GOLD through a read-only role
 
+**Tableau Public:** [City 311 Pipeline: NYC vs Boston](https://public.tableau.com/app/profile/chima.ojini/viz/City311PipelineNYCvsBoston/City311NYCvsBostondatathroughNov132026), a snapshot built from the gold-table CSV export
+
 ![Live dashboard: Claude's daily report and KPI tiles](docs/screenshots/18-dashboard-ai-report-and-kpis.jpg)
 
 > **Why it's interesting:** Boston is migrating 311 to a new CRM while this
@@ -73,7 +75,7 @@ CSV export). The AI task runs even when `dbt build` fails, so failures get expla
 | ![AI findings on the dashboard](docs/screenshots/23-dashboard-ai-findings-expanded.jpg) | ![Boston CRM migration](docs/screenshots/19-dashboard-trends-and-migration.jpg) |
 | Claude's findings: numbers, likely cause, confidence, next step | Daily volume by city, and Boston's legacy-to-new CRM migration |
 
-All 23 screenshots from the first end-to-end run, in order, are in
+All 24 screenshots from the first end-to-end run, in order, are in
 [docs/screenshots](docs/screenshots/README.md).
 
 ## First run: what broke and how it was fixed
