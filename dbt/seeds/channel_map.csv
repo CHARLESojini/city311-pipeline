@@ -1,0 +1,13 @@
+source_system,channel_raw,channel
+nyc,PHONE,phone
+nyc,ONLINE,web_app
+nyc,MOBILE,web_app
+nyc,UNKNOWN,unknown
+boston_legacy,Constituent Call,phone
+boston_legacy,Citizens Connect App,web_app
+boston_legacy,Self Service,web_app
+boston_legacy,City Worker App,employee
+boston_legacy,Employee Generated,employee
+boston_new,Call,phone
+boston_new,BOS311,web_app
+boston_new,Email,email

@@ -7,3 +7,9 @@ s3-policy.json
 __pycache__/
 logs/
 .DS_Store
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml

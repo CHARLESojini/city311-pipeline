@@ -1,10 +1,12 @@
-x-local-creds: &local-creds
+# Local development mounts (read-only credentials, live dbt project).
+x-local-mounts: &local-mounts
   volumes:
     - ${HOME}/.aws:/usr/local/airflow/.aws:ro
     - ${HOME}/.snowflake:/usr/local/airflow/.snowflake:ro
+    - ../dbt:/usr/local/airflow/dbt
 
 services:
-  scheduler: *local-creds
-  api-server: *local-creds
-  dag-processor: *local-creds
-  triggerer: *local-creds
+  scheduler: *local-mounts
+  api-server: *local-mounts
+  dag-processor: *local-mounts
+  triggerer: *local-mounts

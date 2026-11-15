@@ -1,0 +1,87 @@
+city,source_system,category_raw,standard_category
+NYC,nyc,APPLIANCE,Housing Conditions
+NYC,nyc,Abandoned Vehicle,Abandoned Vehicle
+NYC,nyc,Blocked Driveway,Parking Enforcement
+NYC,nyc,DOOR/WINDOW,Housing Conditions
+NYC,nyc,Damaged Tree,Trees
+NYC,nyc,Derelict Vehicles,Abandoned Vehicle
+NYC,nyc,Dirty Condition,Litter & Sanitation
+NYC,nyc,ELECTRIC,Housing Conditions
+NYC,nyc,Encampment,Encampments & Homelessness
+NYC,nyc,FLOORING/STAIRS,Housing Conditions
+NYC,nyc,GENERAL,Housing Conditions
+NYC,nyc,Graffiti,Graffiti
+NYC,nyc,HEAT/HOT WATER,Housing Conditions
+NYC,nyc,Homeless Person Assistance,Encampments & Homelessness
+NYC,nyc,Illegal Dumping,Illegal Dumping
+NYC,nyc,Illegal Parking,Parking Enforcement
+NYC,nyc,Missed Collection,Missed Trash Pickup
+NYC,nyc,Noise,Noise
+NYC,nyc,Noise - Commercial,Noise
+NYC,nyc,Noise - Residential,Noise
+NYC,nyc,Noise - Street/Sidewalk,Noise
+NYC,nyc,Noise - Vehicle,Noise
+NYC,nyc,Overgrown Tree/Branches,Trees
+NYC,nyc,PAINT/PLASTER,Housing Conditions
+NYC,nyc,PLUMBING,Housing Conditions
+NYC,nyc,Rodent,Rodents & Pests
+NYC,nyc,Sewer Maintenance,Water & Sewer
+NYC,nyc,Sidewalk Condition,Sidewalk
+NYC,nyc,Street Condition,Street & Pothole
+NYC,nyc,Street Light Condition,Street Lights
+NYC,nyc,Traffic Signal Condition,Traffic Signals & Signs
+NYC,nyc,UNSANITARY CONDITION,Housing Conditions
+NYC,nyc,WATER LEAK,Housing Conditions
+NYC,nyc,Water Maintenance,Water & Sewer
+Boston,boston_legacy,Abandoned Vehicles,Abandoned Vehicle
+Boston,boston_legacy,Empty Litter Basket,Litter & Sanitation
+Boston,boston_legacy,Encampments,Encampments & Homelessness
+Boston,boston_legacy,Graffiti Removal,Graffiti
+Boston,boston_legacy,Heat - Excessive  Insufficient,Housing Conditions
+Boston,boston_legacy,Illegal Dumping,Illegal Dumping
+Boston,boston_legacy,Improper Storage of Trash (Barrels),Litter & Sanitation
+Boston,boston_legacy,Maintenance Complaint - Residential,Housing Conditions
+Boston,boston_legacy,Missed Trash/Recycling/Yard Waste/Bulk Item,Missed Trash Pickup
+Boston,boston_legacy,Needle Pickup,Needle Pickup
+Boston,boston_legacy,New Sign  Crosswalk or Pavement Marking,Traffic Signals & Signs
+Boston,boston_legacy,Parking Enforcement,Parking Enforcement
+Boston,boston_legacy,Pest Infestation - Residential,Rodents & Pests
+Boston,boston_legacy,Pick up Dead Animal,Dead Animal
+Boston,boston_legacy,Poor Conditions of Property,Housing Conditions
+Boston,boston_legacy,Request for Pothole Repair,Street & Pothole
+Boston,boston_legacy,Request for Snow Plowing,Snow & Ice
+Boston,boston_legacy,Requests for Street Cleaning,Litter & Sanitation
+Boston,boston_legacy,Requests for Traffic Signal Studies or Reviews,Traffic Signals & Signs
+Boston,boston_legacy,Rodent Activity,Rodents & Pests
+Boston,boston_legacy,Sidewalk Repair (Make Safe),Sidewalk
+Boston,boston_legacy,Sign Repair,Traffic Signals & Signs
+Boston,boston_legacy,Traffic Signal Inspection,Traffic Signals & Signs
+Boston,boston_legacy,Unsatisfactory Living Conditions,Housing Conditions
+Boston,boston_legacy,Unshoveled Sidewalk,Snow & Ice
+Boston,boston_new,Abandoned Vehicles,Abandoned Vehicle
+Boston,boston_new,Dead Animal General,Dead Animal
+Boston,boston_new,Fallen Tree or Branches,Trees
+Boston,boston_new,Illegal Dumping or Disposal,Illegal Dumping
+Boston,boston_new,Illegal Graffiti,Graffiti
+Boston,boston_new,Illegal Parking,Parking Enforcement
+Boston,boston_new,Illegally Blocked Sidewalk,Sidewalk
+Boston,boston_new,Improper Trash Storage,Litter & Sanitation
+Boston,boston_new,Litter & Debris,Litter & Sanitation
+Boston,boston_new,Missed Waste Pick-up,Missed Trash Pickup
+Boston,boston_new,Missing / Knocked Down Sign,Traffic Signals & Signs
+Boston,boston_new,Needle Pickup,Needle Pickup
+Boston,boston_new,New / Modified Sign Request,Traffic Signals & Signs
+Boston,boston_new,Overflowing Trash,Litter & Sanitation
+Boston,boston_new,Park Litter & Debris,Litter & Sanitation
+Boston,boston_new,Park Overflowing Trash Can,Litter & Sanitation
+Boston,boston_new,Planting Request,Trees
+Boston,boston_new,Pothole,Street & Pothole
+Boston,boston_new,Pruning Request,Trees
+Boston,boston_new,Rat Activity,Rodents & Pests
+Boston,boston_new,Sidewalk Repair,Sidewalk
+Boston,boston_new,Street Light Knockdown,Street Lights
+Boston,boston_new,Street Light Other,Street Lights
+Boston,boston_new,Street Light Outage,Street Lights
+Boston,boston_new,Traffic Signal Request,Traffic Signals & Signs
+Boston,boston_new,Trash Placed Out Early,Litter & Sanitation
+Boston,boston_new,Tree or Stump Removal,Trees

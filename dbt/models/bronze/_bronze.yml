@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: brz_nyc_requests
+    description: >
+      NYC raw JSON flattened to typed columns. One row per loaded record
+      version, so a request appears once when opened and again when closed.
+    columns:
+      - name: request_id
+        description: Socrata unique_key.
+      - name: created_at
+        description: Local (America/New_York) creation time.
+      - name: closed_at
+        description: Local close time. Can precede created_at or be 1900-01-01 in the source.
+
+  - name: brz_boston_legacy_requests
+    description: Boston legacy CRM (12-digit case_enquiry_id), typed. All record versions.
+    columns:
+      - name: request_id
+        description: case_enquiry_id, a 12-digit number stored as text.
+      - name: address
+        description: Location with the portal's HTML escaping (&amp;) undone.
+
+  - name: brz_boston_new_requests
+    description: Boston new CRM (case_id like BCS-00373533), typed. All record versions.
+    columns:
+      - name: request_id
+        description: case_id, always prefixed BCS-.
