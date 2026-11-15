@@ -4,16 +4,18 @@ with fct as (
 ),
 
 as_of as (
-    select max(created_date) as as_of_date from fct
+    select cast({{ last_complete_day() }} as date) as as_of_date from fct
 ),
 
 flagged as (
     select
         fct.*,
-        fct.created_date >  {{ dbt.dateadd('day', -7, 'as_of.as_of_date') }}       as in_last_7,
+        fct.created_date >  {{ dbt.dateadd('day', -7, 'as_of.as_of_date') }}
+            and fct.created_date <= as_of.as_of_date                                 as in_last_7,
         fct.created_date <= {{ dbt.dateadd('day', -7, 'as_of.as_of_date') }}
             and fct.created_date > {{ dbt.dateadd('day', -14, 'as_of.as_of_date') }} as in_prior_7,
-        fct.created_date >  {{ dbt.dateadd('day', -28, 'as_of.as_of_date') }}      as in_last_28
+        fct.created_date >  {{ dbt.dateadd('day', -28, 'as_of.as_of_date') }}
+            and fct.created_date <= as_of.as_of_date                                 as in_last_28
     from fct
     cross join as_of
 )

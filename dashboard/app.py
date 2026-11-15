@@ -77,7 +77,9 @@ cities = cities or ["NYC", "Boston"]
 days = days or 60
 
 start = pd.Timestamp(as_of) - pd.Timedelta(days=days - 1)
-vol = volume[(volume["activity_date"] >= start) & volume["city"].isin(cities)]
+# as_of is the last complete day; the provisional newest day is left out of the charts
+vol = volume[(volume["activity_date"] >= start) & (volume["activity_date"] <= pd.Timestamp(as_of))
+             & volume["city"].isin(cities)]
 if picked:
     vol = vol[vol["standard_category"].isin(picked)]
 
