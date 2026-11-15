@@ -32,7 +32,9 @@ from typing import Any
 import requests
 
 DEFAULT_MODEL = "claude-haiku-5-5"
-MAX_ANOMALIES = 25
+MAX_ANOMALIES = 15
+MAX_FINDINGS = 8
+MAX_OUTPUT_TOKENS = 16_000  # headroom for the model's reasoning plus the JSON report
 RECENT_DAYS = 3
 
 QueryFn = Callable[[str], list[dict[str, Any]]]
@@ -67,6 +69,9 @@ Rules:
   confirm it. Do not overstate: "unclear" is an acceptable likely_cause.
 - Severity: critical if data is missing or wrong for a whole city or source,
   warning for notable anomalies or test warnings, info otherwise.
+- Report at most {max_findings} findings. When several anomalies share one cause
+  (for example the Boston CRM migration), merge them into a single finding that
+  cites the most significant anomaly_key and mentions the others in the explanation.
 - Be concise. The headline is one sentence; each explanation is at most three.
 """
 
@@ -242,8 +247,8 @@ def generate_insight(ctx: InsightContext, client: Any | None, model: str = DEFAU
 
     response = client.messages.create(
         model=model,
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        max_tokens=MAX_OUTPUT_TOKENS,
+        system=SYSTEM_PROMPT.format(max_findings=MAX_FINDINGS),
         messages=[{
             "role": "user",
             "content": "Write today's incident report from this pipeline context:\n\n"
