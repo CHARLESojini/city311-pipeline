@@ -98,7 +98,7 @@ Run the scripts in `snowflake/` in order, replacing `<PLACEHOLDERS>`:
 | `03_stage_and_load.sql` | external stage + JSON file format |
 | `04_airflow_service_user.sql` | `PIPELINE_LOADER` role + key-pair user `AIRFLOW_SVC` |
 | `05_multi_source_raw.sql` | one RAW table per source (renames the original NYC table) |
-| `06_dbt_transformer.sql` | `TRANSFORMER` role for dbt |
+| `06_dbt_transformer.sql` | `CITY311_TRANSFORMER` role for dbt |
 | `07_ai_insights.sql` | `AI.DAILY_INSIGHTS` |
 | `08_reporting_access.sql` | read-only `REPORTER` role + `STREAMLIT_SVC` user for the dashboard |
 

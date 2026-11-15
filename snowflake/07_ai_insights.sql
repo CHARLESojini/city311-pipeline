@@ -1,6 +1,6 @@
 -- Phase 4: where the AI layer writes its daily reports. Idempotent.
 -- Read access to GOLD for PIPELINE_LOADER is granted by dbt itself after each
--- prod run (macro grant_gold_access), because dbt (TRANSFORMER) owns GOLD.
+-- prod run (macro grant_gold_access), because dbt (CITY311_TRANSFORMER) owns GOLD.
 USE ROLE SYSADMIN;
 USE WAREHOUSE NYC311_WH;
 
