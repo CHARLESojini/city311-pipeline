@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scan full history, not just the tip
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Project-specific secret patterns
+        run: python scripts/ci/check_no_secrets.py
+
+  python:
+    name: Lint + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest
+
+  dbt:
+    name: dbt build (DuckDB fixtures) + Snowflake SQL check
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Load fixture data shaped like Snowflake RAW
+        run: python scripts/ci/load_fixtures.py dbt/target/city311_ci.duckdb
+      - name: dbt build (models + unit tests + data tests)
+        working-directory: dbt
+        run: dbt build --target ci
+      - name: Compile for Snowflake offline and parse as Snowflake SQL
+        working-directory: dbt
+        env:
+          SNOWFLAKE_ACCOUNT: ci-placeholder
+          SNOWFLAKE_USER: ci-placeholder
+        run: |
+          dbt compile --target prod --no-populate-cache --target-path target_sf
+          python ../scripts/ci/check_snowflake_sql.py target_sf
+
+  dags:
+    name: Airflow DAG integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Airflow 3 + providers (pinned by Airflow's constraints)
+        run: |
+          pip install "apache-airflow==3.1.8" \
+            apache-airflow-providers-amazon apache-airflow-providers-snowflake \
+            apache-airflow-providers-standard pytest \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.8/constraints-3.12.txt"
+      - name: DAG tests
+        working-directory: airflow
+        env:
+          AIRFLOW_HOME: /tmp/airflow
+          AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+          AIRFLOW__CORE__DAGS_FOLDER: ${{ github.workspace }}/airflow/dags
+          PYTHONPATH: ${{ github.workspace }}/airflow
+        run: |
+          airflow db migrate
+          pytest tests/dags -p no:cacheprovider

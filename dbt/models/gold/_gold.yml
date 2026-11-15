@@ -3,20 +3,54 @@ version: 2
 models:
   - name: fct_service_requests
     description: One row per service request (latest version), all cities. Base grain for marts and drill-down.
+    columns:
+      - name: request_key
+        data_tests: [unique, not_null]
+      - name: created_date
+        data_tests: [not_null]
 
   - name: mart_daily_city_volume
     description: Requests opened and closed per day x city x source system x standard category.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [activity_date, city, source_system, standard_category]
+    columns:
+      - name: opened_count
+        data_tests:
+          - is_between:
+              arguments: {min_value: 0}
 
   - name: mart_category_performance
     description: >
       Resolution speed per city and standard category over the trailing
       performance window (var performance_window_days), as of the latest data day.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [city, standard_category]
+    columns:
+      - name: pct_closed
+        data_tests:
+          - is_between:
+              arguments: {min_value: 0, max_value: 1}
+      - name: pct_on_time
+        data_tests:
+          - is_between:
+              arguments: {min_value: 0, max_value: 1}
 
   - name: mart_open_backlog
     description: Open requests and their age per city and category, as of the latest data day.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [city, standard_category]
 
   - name: mart_city_kpis
     description: One headline row per city for dashboard KPI tiles.
+    columns:
+      - name: city
+        data_tests: [unique, not_null]
 
   - name: mart_volume_anomalies
     description: >
@@ -26,7 +60,14 @@ models:
     columns:
       - name: anomaly_key
         description: series_type:city:series_value:date
+        data_tests: [unique, not_null]
+      - name: series_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["city", "source_system", "category"]
       - name: is_anomaly
         description: >
           |z| >= anomaly_z_threshold AND |pct change| >= anomaly_min_pct_change AND
           baseline mean >= anomaly_min_baseline AND at least half a baseline of history.
+        data_tests: [not_null]

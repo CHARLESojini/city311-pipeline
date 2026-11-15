@@ -1,0 +1,67 @@
+version: 2
+
+# dbt unit tests: fixed inputs -> expected outputs for the logic most likely to
+# regress. They run before the model builds (dbt build) and need no real data.
+unit_tests:
+  - name: nyc_dedup_keeps_latest_version
+    description: >
+      A request extracted when opened and again when closed must collapse to
+      one row carrying the later (closed) version.
+    model: slv_nyc_requests
+    given:
+      - input: ref('brz_nyc_requests')
+        rows:
+          - {request_id: "1", created_at: "2026-11-01 10:00:00", closed_at: null, status: "Open",
+             complaint_type: "Rodent", _source_file: "nyc/run_date=2026-11-01/a.json", _loaded_at: "2026-11-02 06:00:00"}
+          - {request_id: "1", created_at: "2026-11-01 10:00:00", closed_at: "2026-11-03 09:00:00", status: "Closed",
+             complaint_type: "Rodent", _source_file: "nyc/run_date=2026-11-03/b.json", _loaded_at: "2026-11-04 06:00:00"}
+          - {request_id: "2", created_at: "2026-11-02 08:00:00", closed_at: null, status: "Open",
+             complaint_type: "Noise", _source_file: "nyc/run_date=2026-11-02/c.json", _loaded_at: "2026-11-03 06:00:00"}
+          - {request_id: null, created_at: "2026-11-02 08:00:00", status: "Open",
+             _source_file: "nyc/run_date=2026-11-02/c.json", _loaded_at: "2026-11-03 06:00:00"}
+    expect:
+      rows:
+        - {request_id: "1", status_raw: "Closed", closed_at: "2026-11-03 09:00:00"}
+        - {request_id: "2", status_raw: "Open", closed_at: null}
+
+  - name: conformance_normalizes_status_zip_coords_and_on_time
+    description: >
+      Status groups, Boston ZIP leading zeros, out-of-region coordinates,
+      ONTIME/OVERDUE flags, invalid closures and unmapped categories.
+    model: slv_service_requests
+    given:
+      - input: ref('slv_nyc_requests')
+        rows:
+          - {city: "NYC", source_system: "nyc", request_id: "10", created_at: "2026-11-01 10:00:00",
+             closed_at: "2026-11-01 12:30:00", status_raw: "Closed", category_raw: "Rodent", channel_raw: "PHONE",
+             zip_code: "10003", latitude: 40.73, longitude: -73.99, on_time_raw: null}
+          - {city: "NYC", source_system: "nyc", request_id: "11", created_at: "2026-11-01 10:00:00",
+             closed_at: "1900-01-01 00:00:00", status_raw: "Closed", category_raw: "Taxi Complaint", channel_raw: "UNKNOWN",
+             zip_code: null, latitude: 0, longitude: 0, on_time_raw: null}
+      - input: ref('slv_boston_requests')
+        rows:
+          - {city: "Boston", source_system: "boston_new", request_id: "BCS-00000001", created_at: "2026-11-01 09:00:00",
+             closed_at: null, status_raw: "In progress", category_raw: "Pothole", channel_raw: "BOS311",
+             zip_code: "2135", latitude: 42.36, longitude: -71.14, on_time_raw: "OVERDUE"}
+          - {city: "Boston", source_system: "boston_new", request_id: "BCS-00000002", created_at: "2026-11-01 09:00:00",
+             closed_at: null, status_raw: "Error", category_raw: "Pothole", channel_raw: "Email",
+             zip_code: "2125.0", latitude: 42.31, longitude: -71.05, on_time_raw: "ONTIME"}
+      - input: ref('category_map')
+        rows:
+          - {city: "NYC", source_system: "nyc", category_raw: "Rodent", standard_category: "Rodents & Pests"}
+          - {city: "Boston", source_system: "boston_new", category_raw: "Pothole", standard_category: "Street & Pothole"}
+      - input: ref('channel_map')
+        rows:
+          - {source_system: "nyc", channel_raw: "PHONE", channel: "phone"}
+          - {source_system: "boston_new", channel_raw: "BOS311", channel: "web_app"}
+          - {source_system: "boston_new", channel_raw: "Email", channel: "email"}
+    expect:
+      rows:
+        - {request_key: "nyc:10", status_group: "closed", standard_category: "Rodents & Pests", channel: "phone",
+           zip_code: "10003", latitude: 40.73, is_on_time: null, has_invalid_closure: false, resolution_hours: 2.5}
+        - {request_key: "nyc:11", status_group: "closed", standard_category: "Other", channel: "unknown",
+           zip_code: null, latitude: null, is_on_time: null, has_invalid_closure: true, resolution_hours: null}
+        - {request_key: "boston_new:BCS-00000001", status_group: "open", standard_category: "Street & Pothole", channel: "web_app",
+           zip_code: "02135", latitude: 42.36, is_on_time: false, has_invalid_closure: false, resolution_hours: null}
+        - {request_key: "boston_new:BCS-00000002", status_group: "other", standard_category: "Street & Pothole", channel: "email",
+           zip_code: "02125", latitude: 42.31, is_on_time: true, has_invalid_closure: false, resolution_hours: null}

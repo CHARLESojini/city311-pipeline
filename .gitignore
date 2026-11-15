@@ -13,3 +13,10 @@ dbt/target/
 dbt/logs/
 dbt/dbt_packages/
 dbt/.user.yml
+
+# secrets: keys, local env files, Streamlit secrets
+!.env.example
+*.p8
+*.pem
+.streamlit/secrets.toml
+dashboard/.streamlit/secrets.toml

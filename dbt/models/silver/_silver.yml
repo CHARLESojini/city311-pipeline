@@ -3,38 +3,100 @@ version: 2
 models:
   - name: slv_nyc_requests
     description: Latest version of each NYC request in the conformed column set.
+    columns:
+      - name: request_id
+        data_tests: [unique, not_null]
 
   - name: slv_boston_requests
     description: >
       Boston as one continuous history across the CRM migration: the legacy and
       new systems deduped separately and stacked, with source_system kept.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [source_system, request_id]
 
   - name: slv_service_requests
     description: All cities and source systems in one conformed schema, one row per request.
     columns:
       - name: request_key
         description: "<source_system>:<request_id>, unique across every city and system."
+        data_tests: [unique, not_null]
       - name: city
         description: NYC or Boston.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NYC", "Boston"]
       - name: source_system
         description: nyc, boston_legacy or boston_new.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["nyc", "boston_legacy", "boston_new"]
+      - name: created_at
+        data_tests: [not_null]
       - name: status_group
         description: open / closed / other, normalized from each system's statuses.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["open", "closed", "other"]
       - name: standard_category
         description: Cross-city category from the category_map seed; 'Other' when unmapped.
+        data_tests: [not_null]
       - name: channel
         description: phone / web_app / employee / email / unknown, from the channel_map seed.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["phone", "web_app", "employee", "email", "unknown"]
+      - name: zip_code
+        data_tests:
+          - matches_pattern:
+              arguments:
+                pattern: "_____"
+              config:
+                severity: warn
       - name: is_on_time
         description: Boston only (ONTIME/OVERDUE against the city's own target); NULL for NYC.
       - name: has_invalid_closure
         description: True when the source closed the request before it was created.
       - name: resolution_hours
         description: Hours from creation to close; NULL when open or the closure is invalid.
+        data_tests:
+          - is_between:
+              arguments:
+                min_value: 0
+                # > 2 years open-to-close is almost certainly a data error
+                max_value: 17520
+              config:
+                severity: warn
+      - name: latitude
+        data_tests:
+          - is_between:
+              arguments: {min_value: 40, max_value: 43.5}
+      - name: longitude
+        data_tests:
+          - is_between:
+              arguments: {min_value: -75, max_value: -70}
 
 seeds:
   - name: category_map
     description: >
       Maps each system's own category (NYC complaint_type, Boston legacy type,
       Boston new service_name) to a shared standard_category so cities compare.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [source_system, category_raw]
+    columns:
+      - name: standard_category
+        data_tests: [not_null]
   - name: channel_map
     description: Maps each system's intake channel to a shared channel value.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [source_system, channel_raw]

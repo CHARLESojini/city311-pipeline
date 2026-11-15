@@ -8,6 +8,9 @@ For each source, in parallel:
 When every load succeeds, ``publish_raw`` updates the ``city311_raw`` asset,
 which triggers the ``city311_transform`` DAG (dbt + AI insights).
 
+Configuration comes from the environment (see .env.example): CITY311_BUCKET,
+CITY311_LOOKBACK_DAYS, and the snowflake_default connection.
+
 Idempotency: re-running a date overwrites the same S3 key. Duplicate versions
 of a request (re-runs, overlapping lookback windows) are resolved in silver.
 """
@@ -32,7 +35,6 @@ from include.city311.sources import (
     extract_window,
 )
 
-BUCKET = os.getenv("CITY311_BUCKET", "nyc311-raw-chima")
 STAGE = "NYC311.RAW.NYC311_S3_STAGE"
 LOOKBACK_DAYS = int(os.getenv("CITY311_LOOKBACK_DAYS", DEFAULT_LOOKBACK_DAYS))
 
@@ -47,6 +49,13 @@ LOOKBACK_DAYS = int(os.getenv("CITY311_LOOKBACK_DAYS", DEFAULT_LOOKBACK_DAYS))
     doc_md=__doc__,
 )
 def city311_ingest():
+    def landing_bucket() -> str:
+        # Read at run time, not parse time, so the DAG imports without it set.
+        bucket = os.getenv("CITY311_BUCKET")
+        if not bucket:
+            raise RuntimeError("CITY311_BUCKET is not set; copy .env.example to airflow/.env")
+        return bucket
+
     @task
     def extract(source_name: str) -> str | None:
         src = SOURCES_BY_NAME[source_name]
@@ -63,10 +72,11 @@ def city311_ingest():
             return None
 
         key = src.s3_key(window)
+        bucket = landing_bucket()
         S3Hook(aws_conn_id=None).load_string(
-            json.dumps(records), key=key, bucket_name=BUCKET, replace=True
+            json.dumps(records), key=key, bucket_name=bucket, replace=True
         )
-        print(f"[{src.name}] wrote {len(records):,} records to s3://{BUCKET}/{key}")
+        print(f"[{src.name}] wrote {len(records):,} records to s3://{bucket}/{key}")
         return key
 
     @task

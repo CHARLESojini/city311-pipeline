@@ -1,0 +1,10 @@
+# Local development and CI (not the Airflow image; see airflow/requirements.txt)
+ruff>=0.8
+pytest>=8
+pendulum>=3
+requests>=2.31
+duckdb>=1.1
+dbt-core~=1.12.0
+dbt-duckdb~=1.11
+dbt-snowflake~=1.12.0
+sqlglot>=25

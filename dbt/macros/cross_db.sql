@@ -93,3 +93,17 @@
     where spine_numbers.n <= {{ dbt.datediff('spine_bounds.lo', 'spine_bounds.hi', 'day') }}
   )
 {%- endmacro %}
+
+
+{# True when the whole value matches a regular expression. #}
+{% macro regex_full_match(expr, pattern) -%}
+  {{ return(adapter.dispatch('regex_full_match', 'city311')(expr, pattern)) }}
+{%- endmacro %}
+
+{% macro default__regex_full_match(expr, pattern) -%}
+  regexp_like({{ expr }}, '{{ pattern }}')
+{%- endmacro %}
+
+{% macro duckdb__regex_full_match(expr, pattern) -%}
+  regexp_full_match({{ expr }}, '{{ pattern }}')
+{%- endmacro %}
