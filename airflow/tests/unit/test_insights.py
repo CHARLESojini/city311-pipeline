@@ -144,14 +144,16 @@ def test_load_context_against_duckdb_gold(tmp_path):
     con = duckdb.connect(str(tmp_path / "g.duckdb"))
     con.execute("create schema gold")
     con.execute("""create table gold.mart_volume_anomalies as select * from (values
-        ('category:NYC:Noise:2026-11-12', date '2026-11-12', 'category', 'NYC', 'Noise', 'spike', 168, 28.5, 21.4, 4.9, true),
-        ('city:NYC:NYC:2026-11-13',       date '2026-11-13', 'city', 'NYC', 'NYC', 'spike', 160, 150.0, 0.5, 0.06, false),
-        ('city:NYC:NYC:2026-10-01',       date '2026-10-01', 'city', 'NYC', 'NYC', 'drop', 10, 150.0, -9.0, -0.9, true)
+        ('category:NYC:Noise:2026-11-12', date '2026-11-12', 'category', 'NYC', 'Noise', 'spike', 168, 28.5, 21.4, 4.9, false, true),
+        ('city:NYC:NYC:2026-11-12',       date '2026-11-12', 'city', 'NYC', 'NYC', 'spike', 160, 150.0, 0.5, 0.06, false, false),
+        ('city:NYC:NYC:2026-11-13',       date '2026-11-13', 'city', 'NYC', 'NYC', 'drop', 8, 150.0, -9.0, -0.95, true, false),
+        ('city:NYC:NYC:2026-10-01',       date '2026-10-01', 'city', 'NYC', 'NYC', 'drop', 10, 150.0, -9.0, -0.9, false, true)
       ) t(anomaly_key, activity_date, series_type, city, series_value, direction, request_count,
-          baseline_mean, z_score, pct_change_vs_baseline, is_anomaly)""")
+          baseline_mean, z_score, pct_change_vs_baseline, is_provisional, is_anomaly)""")
     con.execute("create table gold.mart_city_kpis as select 'NYC' as city, 1173 as requests_last_7d")
-    con.execute("""create table gold.mart_daily_city_volume as
-        select date '2026-11-13' as activity_date, 'NYC' as city, 'nyc' as source_system, 160 as opened_count""")
+    con.execute("""create table gold.mart_daily_city_volume as select * from (values
+        (date '2026-11-12', 'NYC', 'nyc', 160), (date '2026-11-13', 'NYC', 'nyc', 8)
+      ) t(activity_date, city, source_system, opened_count)""")
 
     def query(sql):
         cur = con.execute(sql)
@@ -159,7 +161,8 @@ def test_load_context_against_duckdb_gold(tmp_path):
         return [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
 
     c = ins.load_context(query, "gold")
-    assert c.as_of_date == "2026-11-13"
+    # as-of is the last complete day: the provisional 11-13 is left out entirely
+    assert c.as_of_date == "2026-11-12"
     # only flagged anomalies from the recent window; the October one is history
     assert [a["anomaly_key"] for a in c.anomalies] == ["category:NYC:Noise:2026-11-12"]
-    assert c.recent_volume[0]["opened"] == 160
+    assert [r["opened"] for r in c.recent_volume] == [160]

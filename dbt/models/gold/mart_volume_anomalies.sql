@@ -95,10 +95,10 @@ select
     z_score,
     pct_change_vs_baseline,
     case when request_count >= baseline_mean then 'spike' else 'drop' end as direction,
-    activity_date > {{ dbt.dateadd('day', -var('anomaly_provisional_days'), 'latest.max_date') }}
+    activity_date > {{ dbt.dateadd('day', -var('provisional_days'), 'latest.max_date') }}
                                                                           as is_provisional,
     coalesce(
-        activity_date <= {{ dbt.dateadd('day', -var('anomaly_provisional_days'), 'latest.max_date') }}
+        activity_date <= {{ dbt.dateadd('day', -var('provisional_days'), 'latest.max_date') }}
         and baseline_days >= {{ (baseline_window / 2) | int }}
         and baseline_mean >= {{ var('anomaly_min_baseline') }}
         and abs(z_score) >= {{ var('anomaly_z_threshold') }}

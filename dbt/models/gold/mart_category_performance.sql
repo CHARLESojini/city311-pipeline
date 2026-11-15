@@ -8,7 +8,7 @@ with fct as (
 ),
 
 as_of as (
-    select max(created_date) as as_of_date from fct
+    select cast({{ last_complete_day() }} as date) as as_of_date from fct
 ),
 
 windowed as (

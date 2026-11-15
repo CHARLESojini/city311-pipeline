@@ -53,9 +53,10 @@ Domain knowledge that matters for explanations:
   it an incident. In August 2026 the city mistakenly dropped migrated case types
   from the legacy dataset, which looked like a sharp volume fall; it was fixed
   on 2026-08-25.
-- Both portals publish with a lag of a day or more, so the most recent day can
-  be partially loaded. A drop on the latest day across every category of one
-  source points to publication lag or a failed extract, not a real-world change.
+- Both portals publish with a lag of a day or more. The pipeline therefore
+  treats the newest day as provisional and leaves it out of everything you are
+  shown: as_of_date is the last complete day. Do not report the missing newer
+  day as an incident.
 - NYC volume spikes on hot nights and holiday weekends (noise), after storms
   (trees, flooding, street conditions) and during heat season (heat/hot water).
   Boston spikes after snowstorms (snow and ice, unshoveled sidewalks).
@@ -166,7 +167,10 @@ def _clean(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def load_context(query: QueryFn, gold: str, dbt_target_dir: str | None = None) -> InsightContext:
     """Collect the facts Claude will explain. `gold` is the schema, e.g. NYC311.GOLD."""
-    as_of = _clean(query(f"select max(activity_date) as as_of_date from {gold}.mart_volume_anomalies"))
+    # Last complete day: the newest day(s) are provisional (partially published) and excluded.
+    as_of = _clean(query(
+        f"select max(activity_date) as as_of_date from {gold}.mart_volume_anomalies where not is_provisional"
+    ))
     as_of_date = as_of[0]["as_of_date"] if as_of and as_of[0]["as_of_date"] else None
     if as_of_date is None:
         return InsightContext(as_of_date="unknown", anomalies=[], city_kpis=[], recent_volume=[])
@@ -185,6 +189,7 @@ def load_context(query: QueryFn, gold: str, dbt_target_dir: str | None = None) -
         select activity_date, city, source_system, sum(opened_count) as opened
         from {gold}.mart_daily_city_volume
         where activity_date > cast('{as_of_date}' as date) - 14
+          and activity_date <= cast('{as_of_date}' as date)
         group by 1, 2, 3
         order by 1, 2, 3
     """))

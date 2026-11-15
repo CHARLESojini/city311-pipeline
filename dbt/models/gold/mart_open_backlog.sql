@@ -4,7 +4,7 @@ with fct as (
 ),
 
 as_of as (
-    select max(created_date) as as_of_date from fct
+    select cast({{ last_complete_day() }} as date) as as_of_date from fct
 ),
 
 open_requests as (
@@ -15,6 +15,7 @@ open_requests as (
     from fct
     cross join as_of
     where fct.status_group = 'open'
+      and fct.created_date <= as_of.as_of_date
 )
 
 select

@@ -24,7 +24,7 @@ models:
   - name: mart_category_performance
     description: >
       Resolution speed per city and standard category over the trailing
-      performance window (var performance_window_days), as of the latest data day.
+      performance window (var performance_window_days), as of the last complete day.
     data_tests:
       - unique_combination:
           arguments:
@@ -40,14 +40,14 @@ models:
               arguments: {min_value: 0, max_value: 1}
 
   - name: mart_open_backlog
-    description: Open requests and their age per city and category, as of the latest data day.
+    description: Open requests and their age per city and category, as of the last complete day.
     data_tests:
       - unique_combination:
           arguments:
             combination_of_columns: [city, standard_category]
 
   - name: mart_city_kpis
-    description: One headline row per city for dashboard KPI tiles.
+    description: One headline row per city for dashboard KPI tiles, as of the last complete day.
     columns:
       - name: city
         data_tests: [unique, not_null]
@@ -68,7 +68,7 @@ models:
                 values: ["city", "source_system", "category"]
       - name: is_provisional
         description: >
-          True for the newest anomaly_provisional_days days, which may be partially
+          True for the newest provisional_days days, which may be partially
           published by the portals. Shown, never flagged.
         data_tests: [not_null]
       - name: is_anomaly
