@@ -12,7 +12,12 @@ CREATE FILE FORMAT IF NOT EXISTS JSON_FMT
 CREATE STAGE IF NOT EXISTS NYC311_S3_STAGE
   URL = 's3://<YOUR_BUCKET>/landing/'
   STORAGE_INTEGRATION = NYC311_S3_INT
-  FILE_FORMAT = JSON_FMT;
+  -- Fully qualified: a short name is resolved against the *session's* schema at COPY
+  -- time, which fails for sessions with no default schema (the Airflow connection).
+  FILE_FORMAT = (FORMAT_NAME = 'NYC311.RAW.JSON_FMT');
+
+-- Stages created before this fix:
+ALTER STAGE NYC311_S3_STAGE SET FILE_FORMAT = (FORMAT_NAME = 'NYC311.RAW.JSON_FMT');
 
 LIST @NYC311_S3_STAGE;
 
