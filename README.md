@@ -6,6 +6,10 @@ and a **live dashboard**.
 
 **Stack:** Airflow 3 (Astro) · AWS S3 · Snowflake · dbt · Claude API · Streamlit · Tableau Public
 
+**Live dashboard:** [city311-pipeline.streamlit.app](https://city311-pipeline.streamlit.app), reading Snowflake GOLD through a read-only role
+
+![Live dashboard: Claude's daily report and KPI tiles](docs/screenshots/18-dashboard-ai-report-and-kpis.jpg)
+
 > **Why it's interesting:** Boston is migrating 311 to a new CRM while this
 > pipeline runs. Its data arrives from two systems with different schemas and ID
 > formats, and volume shifts from one to the other a case type at a time. The
@@ -58,6 +62,35 @@ Orchestration is data-aware: `city311_ingest` updates the `city311_raw` asset,
 which triggers `city311_transform` (source freshness, `dbt build`, AI report,
 CSV export). The AI task runs even when `dbt build` fails, so failures get explained.
 
+## In action
+
+| | |
+|---|---|
+| ![Ingest DAG green](docs/screenshots/08-airflow-ingest-run-success.jpg) | ![Transform DAG triggered by the asset](docs/screenshots/09-airflow-transform-run-success.jpg) |
+| `city311_ingest`: three sources extracted and loaded, `city311_raw` asset published | `city311_transform`, triggered by that asset: freshness, dbt, AI report, CSV export |
+| ![dbt build on real data](docs/screenshots/10-dbt-build-55-pass.jpg) | ![60-day backfill](docs/screenshots/12-airflow-backfill-60-days.jpg) |
+| `dbt build` on real data: 55 pass, 1 warning, 0 errors | 60-day backfill running 3 at a time (all 60 runs finished green) |
+| ![AI findings on the dashboard](docs/screenshots/23-dashboard-ai-findings-expanded.jpg) | ![Boston CRM migration](docs/screenshots/19-dashboard-trends-and-migration.jpg) |
+| Claude's findings: numbers, likely cause, confidence, next step | Daily volume by city, and Boston's legacy-to-new CRM migration |
+
+All 23 screenshots from the first end-to-end run, in order, are in
+[docs/screenshots](docs/screenshots/README.md).
+
+## First run: what broke and how it was fixed
+
+CI ran on DuckDB fixtures, so the first live run was the first time these pieces
+met real Snowflake, S3 and Claude. Each issue was fixed in its own PR, with a
+regression test where one was possible.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| S3 writes failed with `ProfileNotFound` | The Astro container's `HOME` is not where the AWS files are mounted | Point `AWS_SHARED_CREDENTIALS_FILE` / `AWS_CONFIG_FILE` at the mount (#12) |
+| `Cannot specify basic authenticator with private key` | Key-pair auth needs an explicit authenticator | `authenticator: SNOWFLAKE_JWT` for Airflow, the dashboard and the export script (#12) |
+| `COPY INTO` could not find `JSON_FMT` | The stage referenced the file format by its short name | Fully qualified `NYC311.RAW.JSON_FMT` in the stage definition |
+| Claude's report cut off mid-JSON ([screenshot](docs/screenshots/13-airflow-ai-report-truncated.jpg)) | 19 anomalies produced more output than a 4k token budget | 16k budget, context capped at the 15 strongest anomalies, at most 8 findings (#13) |
+| Report rated **critical** on a normal day | Today's partially published data looked like a city-wide volume drop | Newest day marked provisional and never flagged (#14); KPIs and the AI context use the last complete day (#15). Flagged anomalies fell from 15 to 3 ([before](docs/screenshots/15-snowflake-ai-report-findings.jpg), [after](docs/screenshots/17-snowflake-ai-report-final.jpg)) |
+| Dashboard slow on every page load | It built a CSV of every request (about 780k rows) for a download button | Request-level file ships only with the daily S3 export (#16) |
+
 ## Quality and testing
 
 - **dbt:** 55 checks including unit tests (dedup keeps the latest version;
@@ -105,7 +138,7 @@ Run the scripts in `snowflake/` in order, replacing `<PLACEHOLDERS>`:
 ### 3. Run Airflow
 
 ```bash
-cd airflow && astro dev start      # UI at http://localhost:8080
+cd airflow && astro dev start      # prints the Airflow UI URL when ready
 ```
 
 Unpause `city311_ingest`; `city311_transform` follows automatically.
@@ -138,7 +171,7 @@ dashboard/          Streamlit app (Snowflake live or DuckDB demo)
 snowflake/          numbered, idempotent setup scripts
 infra/aws/          IAM policy templates
 scripts/            fixtures, CI checks, CSV export, local AI run
-docs/               dashboard deployment (Streamlit, Tableau)
+docs/               dashboard deployment (Streamlit, Tableau), first-run screenshots
 ```
 
 ## Design decisions
