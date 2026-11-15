@@ -27,3 +27,4 @@ Captured during the first end-to-end run (2026-11-15), in order.
 | 21 | `21-dashboard-anomalies-and-backlog.jpg` | Flagged anomalies and open backlog |
 | 22 | `22-dashboard-csv-downloads.jpg` | Gold-table CSV downloads (the request-level file ships with the daily export instead) |
 | 23 | `23-dashboard-ai-findings-expanded.jpg` | Live dashboard: Claude's AI findings expanded (cause, confidence, next action per finding) |
+| 24 | `24-tableau-public-dashboard.jpg` | Tableau Public version built from the gold-table CSVs: daily volume, anomalies, hours to close, open backlog |
