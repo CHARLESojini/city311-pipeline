@@ -20,3 +20,4 @@ dbt/.user.yml
 *.pem
 .streamlit/secrets.toml
 dashboard/.streamlit/secrets.toml
+exports/

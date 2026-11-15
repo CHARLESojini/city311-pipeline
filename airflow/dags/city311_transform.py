@@ -8,6 +8,8 @@ Runs whenever ``city311_ingest`` updates the ``city311_raw`` asset:
     ai_insights        Claude explains flagged anomalies and dbt test failures;
                        report stored in NYC311.AI.DAILY_INSIGHTS and posted to Slack.
                        Runs even when dbt_build fails, so failures get explained.
+    export_gold_csv    gold tables as CSV to s3://$CITY311_BUCKET/exports/tableau/
+                       (latest/ and a dated copy) for the Tableau Public version
 
 dbt runs from its own virtualenv inside the image (see airflow/Dockerfile) so its
 dependencies never clash with Airflow's. Snowflake credentials come from the
@@ -105,8 +107,36 @@ def city311_transform():
         print(f"[{insight['severity']}] {insight['headline']} (slack posted: {posted})")
         return insight["severity"]
 
+    @task
+    def export_gold_csv() -> list[str]:
+        import pendulum as pdl
+        from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+
+        from include.city311.exports import build_exports
+
+        bucket = os.getenv("CITY311_BUCKET")
+        if not bucket:
+            raise RuntimeError("CITY311_BUCKET is not set; copy .env.example to airflow/.env")
+        hook = SnowflakeHook(snowflake_conn_id="snowflake_default")
+
+        def query(sql: str):
+            with hook.get_conn() as conn, conn.cursor() as cur:
+                cur.execute(sql)
+                return [c[0] for c in cur.description], cur.fetchall()
+
+        s3 = S3Hook(aws_conn_id=None)
+        day = pdl.now("America/New_York").to_date_string()
+        keys = []
+        for name, text in build_exports(query, GOLD_SCHEMA, "NYC311.AI").items():
+            for prefix in ("exports/tableau/latest", f"exports/tableau/{day}"):
+                s3.load_string(text, key=f"{prefix}/{name}", bucket_name=bucket, replace=True)
+            keys.append(name)
+        print(f"Exported {len(keys)} files to s3://{bucket}/exports/tableau/latest/")
+        return keys
+
     built = dbt_build()
-    source_freshness() >> built >> publish_gold()
+    published = publish_gold()
+    source_freshness() >> built >> published >> export_gold_csv()
     built >> ai_insights()
 
 
